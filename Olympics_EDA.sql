@@ -115,7 +115,7 @@ where Medal!='Medal-less' and team='India' and sport ='Hockey'
 group by games,sport,team
 order by medal_count desc
 
--- 14) 8.Fetch oldest athlete to win a gold medal
+-- 14) Fetch oldest athlete to win a gold medal
 
 select * from (
     select Name, Sex, Age, Team, Games, City, Sport, Event, Medal,rank() over(order by age desc) rnk 
