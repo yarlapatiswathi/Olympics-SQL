@@ -2,11 +2,11 @@
 
 SELECT COUNT(DISTINCT GAMES) FROM olympics_history;
 
--- 2)LIST DOWN ALL OLYMPIC GAMES HELD SO FAR
+-- 2)LIST DOWN ALL OLYMPIC GAMES HELD SO FAR. Order the result by year.
 
 SELECT DISTINCT GAMES FROM olympics_history;
 
--- 3)MENTION THE TOTAL NO OF NATIONS WHO PARTICIAPTED IN EACH OLYMPIC GAMES?
+-- 3)MENTION THE TOTAL NO OF NATIONS WHO PARTICIAPTED IN EACH OLYMPIC GAMES? Order the results by games.
 
 -- SELECT COUNT(DISTINCT REGION) FROM olympics_history_noc_regions
 
@@ -71,3 +71,53 @@ GROUP BY CTE1.SPORT HAVING COUNT(1)=1;
 SELECT DISTINCT GAMES, COUNT(DISTINCT SPORT) SPORT_COUNT FROM olympics_history
 GROUP BY GAMES
 ORDER BY SPORT_COUNT DESC;
+
+-- 9)Top 5 athletes who have won the most gold medals. Order the results by gold medals in descending.
+
+select Name, Team,count(Medal) as total_gold_medals
+    from olympics_history 
+    where Medal='Gold'
+    group by Name,team
+    order by total_gold_medals desc limit 5
+
+-- 10)Top 5 athletes who have won the most medals (gold/silver/bronze). Order the results by medals in descending.
+
+with CTE as (
+    select name , team , count(medal) as Total_medal, dense_rank() over(order by count(medal) desc) as rnk
+    from olympics_history
+    where medal in ('Gold','Silver','Bronze')
+    group by name,team
+    order by Total_medal desc)
+    
+select name,team,Total_medal 
+from CTE limit 5
+	
+-- 11) Top 5 most successful countries in olympics. Success is defined by no of medals won.
+
+select region, count(Medal), dense_rank() over (order by count(Medal) desc) as rnk
+from olympics_history oh 
+join olympics_history_noc_regions ohr on oh.noc=ohr.noc
+where oh.medal in ('Gold','Silver','Bronze')
+group by region limit 5
+	
+-- 12) In which Sport/event, India has won highest medals.
+select sport,count(medal) as medals_count
+from olympics_history oh 
+where team='India' and medal in ('Gold','Silver','Bronze')
+group by sport
+order by medals_count desc limit 1
+	
+-- 13) Break down all olympic games where india won medal for Hockey and how many medals in each olympic games and order the result by no of medals in descending.
+
+select Team,sport,games,count(medal) as medal_count 
+from olympics_history 
+where Medal!='Medal-less' and team='India' and sport ='Hockey'
+group by games,sport,team
+order by medal_count desc
+
+-- 14) 8.Fetch oldest athlete to win a gold medal
+
+select * from (
+    select Name, Sex, Age, Team, Games, City, Sport, Event, Medal,rank() over(order by age desc) rnk 
+    from olympics_history where Medal='Gold') x
+    where x.rnk=1 
